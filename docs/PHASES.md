@@ -19,7 +19,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] Criterio de salida: todo healthy; `GET /api/orders` sin token → 401; token de `buyer-acme` obtenido por password grant con `orderflow-cli`; UIs de Eureka, Kibana, Grafana, Prometheus y Jaeger accesibles
 
 ## Fase 1 — messaging-lib y catálogo
-- [ ] messaging-lib: outbox (destinos KAFKA y SQS), publisher, métrica `orderflow.outbox.pending`, limpieza (skill `outbox`)
+- [x] messaging-lib: outbox (destinos KAFKA y SQS), publisher, métrica `orderflow.outbox.pending`, limpieza (skill `outbox`)
 - [ ] F09
 - [ ] messaging-lib: inbox, error handler + DLT, endpoint de replay (skill `kafka-consumer`)
 - [ ] catalog-service: productos, descuentos, `GET /api/catalog/products`, `GET /internal/prices`, seeds; 2 réplicas en compose
