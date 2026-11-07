@@ -20,7 +20,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 
 ## Fase 1 — messaging-lib y catálogo
 - [x] messaging-lib: outbox (destinos KAFKA y SQS), publisher, métrica `orderflow.outbox.pending`, limpieza (skill `outbox`)
-- [ ] F09
+- [x] F09
 - [ ] messaging-lib: inbox, error handler + DLT, endpoint de replay (skill `kafka-consumer`)
 - [ ] catalog-service: productos, descuentos, `GET /api/catalog/products`, `GET /internal/prices`, seeds; 2 réplicas en compose
 
