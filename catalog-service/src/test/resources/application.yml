@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: catalog-service
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    locations: classpath:db/migration,classpath:db/messaging,classpath:db/seed
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8180/realms/orderflow/protocol/openid-connect/certs
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+      credentials:
+        access-key: test
+        secret-key: test
+
+orderflow:
+  outbox:
+    poll-interval: PT0.2S
+    batch-size: 100
+    retention: P7D
+  inbox:
+    retention: P7D

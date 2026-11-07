@@ -271,5 +271,31 @@ services:
       retries: 30
       start_period: 20s
 
+  # ---------- services ----------
+  catalog-service:
+    <<: *java-app
+    build: ../catalog-service
+    profiles: [services]
+    deploy:
+      replicas: 2
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ORDERFLOW_PROFILE}
+      CATALOG_DB_PASSWORD: ${CATALOG_DB_PASSWORD}
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8081/actuator/health > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+
 volumes:
   postgres-data:

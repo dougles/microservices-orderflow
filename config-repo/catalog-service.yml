@@ -1,0 +1,38 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/catalog
+    username: catalog
+    password: ${CATALOG_DB_PASSWORD}
+    hikari:
+      connection-timeout: 2000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    locations: classpath:db/migration,classpath:db/messaging
+  kafka:
+    bootstrap-servers: kafka:9092
+    template:
+      observation-enabled: true
+    listener:
+      observation-enabled: true
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.block.ms: 5000
+        request.timeout.ms: 5000
+        delivery.timeout.ms: 10000
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+      credentials:
+        access-key: test
+        secret-key: test
+      sqs:
+        endpoint: http://localstack:4566
