@@ -1,0 +1,26 @@
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      templates:
+        - condition:
+            contains:
+              docker.container.name: orderflow-
+          config:
+            - type: container
+              paths:
+                - /var/lib/docker/containers/${data.docker.container.id}/*.log
+
+processors:
+  - decode_json_fields:
+      fields: [message]
+      target: ""
+      overwrite_keys: true
+      add_error_key: false
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  index: "orderflow-logs-%{+yyyy.MM.dd}"
+
+setup.template.name: orderflow-logs
+setup.template.pattern: orderflow-logs-*
+setup.ilm.enabled: false

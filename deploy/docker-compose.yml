@@ -1,0 +1,275 @@
+name: orderflow
+
+x-java-app: &java-app
+  mem_limit: 512m
+  restart: on-failure:3
+
+services:
+  # ---------- infra ----------
+  postgres:
+    image: postgres:16.15-alpine
+    profiles: [infra]
+    mem_limit: 512m
+    ports: ["5432:5432"]
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      CATALOG_DB_PASSWORD: ${CATALOG_DB_PASSWORD}
+      ORDERS_DB_PASSWORD: ${ORDERS_DB_PASSWORD}
+      INVENTORY_DB_PASSWORD: ${INVENTORY_DB_PASSWORD}
+      CREDIT_DB_PASSWORD: ${CREDIT_DB_PASSWORD}
+      SHIPPING_DB_PASSWORD: ${SHIPPING_DB_PASSWORD}
+      KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+    volumes:
+      - ./postgres/01-init.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d keycloak"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7.4.12-alpine
+    profiles: [infra]
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  kafka:
+    image: apache/kafka:4.4.0
+    profiles: [infra]
+    mem_limit: 1g
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 15s
+
+  kafka-init:
+    image: apache/kafka:4.4.0
+    profiles: [infra]
+    mem_limit: 256m
+    command: ["bash", "/init/create-topics.sh"]
+    volumes:
+      - ./kafka/create-topics.sh:/init/create-topics.sh:ro
+    depends_on:
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/topics-ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.2
+    profiles: [infra]
+    mem_limit: 1g
+    command: ["start-dev", "--import-realm"]
+    ports: ["8180:8180"]
+    environment:
+      KC_HOSTNAME: http://localhost:8180
+      KC_HTTP_PORT: 8180
+      KC_HEALTH_ENABLED: "true"
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      ORDER_SERVICE_CLIENT_SECRET: ${ORDER_SERVICE_CLIENT_SECRET}
+    volumes:
+      - ./keycloak/realm-orderflow.json:/opt/keycloak/data/import/realm-orderflow.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q '200 OK' <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  localstack:
+    image: localstack/localstack:4.14.0
+    profiles: [infra]
+    mem_limit: 1g
+    ports: ["4566:4566"]
+    environment:
+      SERVICES: s3,sqs,lambda,logs
+      AWS_DEFAULT_REGION: us-east-1
+      LAMBDA_DOCKER_NETWORK: orderflow_default
+    volumes:
+      - ./localstack/init/ready.d:/etc/localstack/init/ready.d:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:4566/_localstack/init/ready | grep -q '\"completed\": true'"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+
+  # ---------- obs ----------
+  elasticsearch:
+    image: elasticsearch:8.19.23
+    profiles: [obs]
+    mem_limit: 2g
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: -Xms1g -Xmx1g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=3s' > /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  kibana:
+    image: kibana:8.19.23
+    profiles: [obs]
+    mem_limit: 1g
+    ports: ["5601:5601"]
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:5601/api/status > /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.19.23
+    profiles: [obs]
+    mem_limit: 256m
+    user: root
+    command: ["filebeat", "-e", "--strict.perms=false"]
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "filebeat test output --strict.perms=false"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    profiles: [obs]
+    mem_limit: 512m
+    ports: ["9090:9090"]
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  grafana:
+    image: grafana/grafana:13.3.0
+    profiles: [obs]
+    mem_limit: 512m
+    ports: ["3000:3000"]
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 15
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.76.0
+    profiles: [obs]
+    mem_limit: 512m
+    ports: ["16686:16686"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:14269/"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  # ---------- platform ----------
+  config-server:
+    <<: *java-app
+    build: ../config-server
+    profiles: [platform]
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ORDERFLOW_PROFILE}
+    volumes:
+      - ../config-repo:/config-repo:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8888/actuator/health > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 15s
+
+  discovery-server:
+    <<: *java-app
+    build: ../discovery-server
+    profiles: [platform]
+    ports: ["8761:8761"]
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ORDERFLOW_PROFILE}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8761/actuator/health > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 15s
+
+  gateway:
+    <<: *java-app
+    build: ../gateway
+    profiles: [platform]
+    ports: ["8080:8080"]
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ORDERFLOW_PROFILE}
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8080/actuator/health > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
+
+volumes:
+  postgres-data:

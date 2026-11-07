@@ -1,0 +1,16 @@
+orderflow:
+  outbox:
+    poll-interval: PT0.2S
+    batch-size: 100
+    retention: P7D
+  inbox:
+    retention: P7D
+  saga:
+    step-timeout: PT20S
+    compensation-retry-interval: PT10S
+    max-compensation-attempts: 5
+    timeout-check-interval: PT1S
+  idempotency:
+    retention: PT24H
+  dlq-monitor:
+    interval: PT30S

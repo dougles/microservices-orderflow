@@ -1,0 +1,55 @@
+server:
+  port: 8080
+
+spring:
+  reactor:
+    context-propagation: auto
+  data:
+    redis:
+      host: redis
+      port: 6379
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            response-timeout: 5s
+          default-filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                key-resolver: "#{@companyKeyResolver}"
+          routes:
+            - id: orders
+              uri: lb://order-service
+              predicates:
+                - Path=/api/orders/**
+            - id: catalog
+              uri: lb://catalog-service
+              predicates:
+                - Path=/api/catalog/**
+            - id: ops-order
+              uri: lb://order-service
+              predicates:
+                - Path=/api/ops/order/**
+              filters:
+                - RewritePath=/api/ops/order/(?<rest>.*), /ops/$\{rest}
+            - id: ops-inventory
+              uri: lb://inventory-service
+              predicates:
+                - Path=/api/ops/inventory/**
+              filters:
+                - RewritePath=/api/ops/inventory/(?<rest>.*), /ops/$\{rest}
+            - id: ops-credit
+              uri: lb://credit-service
+              predicates:
+                - Path=/api/ops/credit/**
+              filters:
+                - RewritePath=/api/ops/credit/(?<rest>.*), /ops/$\{rest}
+            - id: ops-shipping
+              uri: lb://shipping-service
+              predicates:
+                - Path=/api/ops/shipping/**
+              filters:
+                - RewritePath=/api/ops/shipping/(?<rest>.*), /ops/$\{rest}

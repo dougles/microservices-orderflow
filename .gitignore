@@ -1,0 +1,16 @@
+# Build
+target/
+
+# Secretos locales
+.env
+!.env.example
+
+# Claude Code local
+.claude/settings.local.json
+
+# IDE y sistema
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
