@@ -30,7 +30,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] F01
 - [x] F02
 - [x] F16
-- [ ] F12
+- [x] F12
 - [ ] F17
 
 ## Fase 3 — Saga completa
