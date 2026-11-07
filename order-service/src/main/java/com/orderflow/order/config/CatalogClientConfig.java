@@ -4,9 +4,11 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import java.net.http.HttpClient;
 import java.time.Clock;
 import java.time.Duration;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
 import org.springframework.cloud.client.circuitbreaker.Customizer;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.cloud.client.loadbalancer.BlockingLoadBalancerInterceptor;
+import org.springframework.cloud.client.loadbalancer.DeferringLoadBalancerInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -43,15 +45,18 @@ public class CatalogClientConfig {
     return new AuthorizedClientServiceOAuth2AuthorizedClientManager(registrations, clients);
   }
 
-  @Bean
-  @LoadBalanced
-  RestClient.Builder loadBalancedRestClientBuilder() {
-    return RestClient.builder();
-  }
-
+  /**
+   * Equivale a un {@code RestClient} {@code @LoadBalanced} (SPEC §6), pero sin publicar un {@code
+   * RestClient.Builder} como bean: el cliente de Eureka toma cualquiera que haya en el contexto y,
+   * con LoadBalancer, resolvería {@code discovery-server} como servicio y nunca se registraría. Se
+   * usa el mismo interceptor que {@code @LoadBalanced} aplica a un builder.
+   */
   @Bean
   RestClient catalogRestClient(
-      @LoadBalanced RestClient.Builder builder, OAuth2AuthorizedClientManager clientManager) {
+      ObjectProvider<BlockingLoadBalancerInterceptor> loadBalancer,
+      OAuth2AuthorizedClientManager clientManager) {
+    RestClient.Builder builder =
+        RestClient.builder().requestInterceptor(new DeferringLoadBalancerInterceptor(loadBalancer));
     var oauth = new OAuth2ClientHttpRequestInterceptor(clientManager);
     oauth.setClientRegistrationIdResolver(request -> REGISTRATION);
     oauth.setPrincipalResolver(request -> SERVICE_PRINCIPAL);

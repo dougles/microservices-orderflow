@@ -34,8 +34,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.web.client.RestClient;
 import tools.jackson.databind.JsonNode;
 
 class OrderApiIT extends AbstractIT {
@@ -297,6 +300,25 @@ class OrderApiIT extends AbstractIT {
     mvc.perform(get(ORDERS + "/" + UUID.randomUUID()).with(buyer("ACME")))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+  }
+
+  // ---------- contexto ----------
+
+  /**
+   * Eureka toma el {@code RestClient.Builder} del contexto con {@code getIfAvailable}: si viera el
+   * builder con LoadBalancer, resolvería {@code discovery-server} como servicio y no se registraría.
+   */
+  @Test
+  void elBuilderConLoadBalancerNoQuedaDisponibleParaEureka(
+      @Autowired ApplicationContext context) {
+    RestClient.Builder available = context.getBeanProvider(RestClient.Builder.class).getIfAvailable();
+    if (available != null) {
+      var interceptors = new ArrayList<String>();
+      available
+          .clone()
+          .requestInterceptors(list -> list.forEach(i -> interceptors.add(i.getClass().getName())));
+      assertThat(interceptors).noneMatch(name -> name.contains("LoadBalancer"));
+    }
   }
 
   // ---------- seguridad ----------
