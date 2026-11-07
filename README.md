@@ -19,8 +19,8 @@ Pedidos mayoristas B2B con microservicios Spring Boot, Kafka y AWS (LocalStack),
 | `.claude/hooks/` | Protección de archivos congelados e integridad de tests |
 
 ## Cómo trabajar con Claude Code
-1. `git init && git add . && git commit -m "chore: estructura inicial"`
-2. `chmod +x .claude/hooks/*.sh`
+1. `git clone https://github.com/dougles/microservices-orderflow.git && cd microservices-orderflow`
+2. `cp deploy/.env.example deploy/.env` y reemplaza cada `cambiar-en-local` por tu propio valor. `deploy/.env` no se versiona.
 3. `claude` en la raíz. Primer prompt: `Empieza la fase actual.`
 4. Una fase por sesión (`/clear` entre fases). Revisa los diffs de tests en cada commit.
 
@@ -28,3 +28,6 @@ Pedidos mayoristas B2B con microservicios Spring Boot, Kafka y AWS (LocalStack),
 Claude no puede editar `docs/SPEC.md`, `docs/FAILURES.md` ni `.claude/`. Si propone un ADR:
 - Lo aceptas → editas tú los archivos (los hooks no te afectan) y marcas el ADR como Aceptado.
 - O habilitas temporalmente la edición: `ORDERFLOW_UNFREEZE=1 claude`.
+
+## Licencia
+[MIT](LICENSE)
