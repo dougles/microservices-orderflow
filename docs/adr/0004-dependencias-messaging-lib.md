@@ -1,6 +1,6 @@
 # 0004 — Dependencias que faltan en SPEC §2 para messaging-lib
 
-- **Estado:** Propuesto
+- **Estado:** Aceptado
 - **Fecha:** 2026-11-06
 - **Fase / ítem donde surgió:** Fase 1, "messaging-lib: outbox" y F09
 
