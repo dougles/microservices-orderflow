@@ -16,12 +16,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.orderflow.contracts.Topics;
 import com.orderflow.order.AbstractIT;
-import com.orderflow.order.config.CatalogClientConfig;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,59 +30,15 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 class OrderApiIT extends AbstractIT {
-
-  private static final String ORDERS = "/api/orders";
-  private static final String PRICES = "/internal/prices";
-  private static final LocalDate TODAY = LocalDate.now(ZoneId.of("America/La_Paz"));
-  private static final JsonMapper JSON = JsonMapper.shared();
-
-  @Autowired MockMvc mvc;
-  @Autowired JdbcTemplate jdbc;
-  @Autowired Resilience4JCircuitBreakerFactory circuitBreakers;
-
-  @BeforeEach
-  void stubToken() {
-    wiremock.stubFor(
-        WireMock.post(urlPathEqualTo("/token"))
-            .willReturn(
-                okJson(
-                    """
-                    {"access_token":"catalog-token","token_type":"Bearer","expires_in":300}
-                    """)));
-  }
-
-  @AfterEach
-  void reset() {
-    wiremock.resetAll();
-    // find, no circuitBreaker(name): este último lo crearía con la config por defecto.
-    circuitBreakers
-        .getCircuitBreakerRegistry()
-        .find(CatalogClientConfig.CIRCUIT_BREAKER)
-        .ifPresent(io.github.resilience4j.circuitbreaker.CircuitBreaker::reset);
-    jdbc.update("DELETE FROM outbox_message");
-    jdbc.update("DELETE FROM idempotency_key");
-    jdbc.update("DELETE FROM saga");
-    jdbc.update("DELETE FROM order_line");
-    jdbc.update("DELETE FROM orders");
-  }
 
   // ---------- POST ----------
 
@@ -378,25 +332,6 @@ class OrderApiIT extends AbstractIT {
 
   // ---------- helpers ----------
 
-  private ResultActions createOrder(String companyId, UUID key, String body) throws Exception {
-    return mvc.perform(
-        post(ORDERS)
-            .with(buyer(companyId))
-            .header("Idempotency-Key", key.toString())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(body));
-  }
-
-  private String createdOrderId(String companyId, String body) throws Exception {
-    String response =
-        createOrder(companyId, UUID.randomUUID(), body)
-            .andExpect(status().isAccepted())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-    return JSON.readTree(response).get("orderId").asString();
-  }
-
   private void expectOnly(String status, String orderId) throws Exception {
     mvc.perform(get(ORDERS).param("status", status).with(buyer("ACME")))
         .andExpect(status().isOk())
@@ -411,44 +346,6 @@ class OrderApiIT extends AbstractIT {
         state,
         reason,
         UUID.fromString(orderId));
-  }
-
-  private int count(String table) {
-    return jdbc.queryForObject("SELECT count(*) FROM " + table, Integer.class);
-  }
-
-  /** Pares sku, precio. */
-  private static void stubPrices(String... skuPrice) {
-    var items = new ArrayList<String>();
-    for (int i = 0; i < skuPrice.length; i += 2) {
-      items.add("{\"sku\":\"%s\",\"unitPrice\":\"%s\"}".formatted(skuPrice[i], skuPrice[i + 1]));
-    }
-    wiremock.stubFor(
-        WireMock.get(urlPathEqualTo(PRICES))
-            .willReturn(
-                okJson(
-                    "{\"currency\":\"BOB\",\"items\":[%s],\"unknownSkus\":[]}"
-                        .formatted(String.join(",", items)))));
-  }
-
-  /** Pares sku, cantidad. */
-  private static String order(LocalDate deliveryDate, Object... skuQuantity) {
-    var items = new ArrayList<String>();
-    for (int i = 0; i < skuQuantity.length; i += 2) {
-      items.add("{\"sku\":\"%s\",\"quantity\":%s}".formatted(skuQuantity[i], skuQuantity[i + 1]));
-    }
-    return "{\"deliveryDate\":\"%s\",\"items\":[%s]}"
-        .formatted(deliveryDate, String.join(",", items));
-  }
-
-  private static JwtRequestPostProcessor buyer(String companyId) {
-    return jwt()
-        .jwt(j -> j.claim("company_id", companyId))
-        .authorities(new SimpleGrantedAuthority("ROLE_buyer"));
-  }
-
-  private static JwtRequestPostProcessor ops() {
-    return jwt().authorities(new SimpleGrantedAuthority("ROLE_ops"));
   }
 
   private static ConsumerRecord<String, String> awaitCommand(UUID orderId) {
