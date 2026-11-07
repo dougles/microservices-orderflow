@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: messaging-lib-it
   flyway:
     locations: classpath:db/messaging
   cloud:
@@ -13,4 +15,6 @@ orderflow:
   outbox:
     poll-interval: PT0.2S
     batch-size: 100
+    retention: P7D
+  inbox:
     retention: P7D

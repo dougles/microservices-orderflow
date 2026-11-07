@@ -1,1 +1,2 @@
 com.orderflow.messaging.outbox.OutboxAutoConfiguration
+com.orderflow.messaging.kafka.KafkaConsumerAutoConfiguration
