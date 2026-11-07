@@ -26,7 +26,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 
 ## Fase 2 — API de pedidos
 - [x] order-service: `POST /api/orders` (validación, precios vía catalog con LB + circuit breaker + client credentials, idempotencia, saga en AWAITING_STOCK, outbox ReserveStock), `GET` por id y listado, multi-tenant
-- [ ] Módulo `e2e-tests`: base de RestAssured, tokens, JDBC, helper de `docker compose`
+- [x] Módulo `e2e-tests`: base de RestAssured, tokens, JDBC, helper de `docker compose`
 - [ ] F01
 - [ ] F02
 - [ ] F16
