@@ -1,6 +1,6 @@
 # OrderFlow — Fases
 
-> Fase actual: 2
+> Fase actual: 3
 
 Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q verify` está verde. Claude marca checkboxes y actualiza la línea "Fase actual"; no agrega ni quita ítems (eso requiere ADR).
 
@@ -31,7 +31,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] F02
 - [x] F16
 - [x] F12
-- [ ] F17
+- [x] F17
 
 ## Fase 3 — Saga completa
 - [ ] inventory-service (SPEC §9)
