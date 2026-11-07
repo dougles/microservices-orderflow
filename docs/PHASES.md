@@ -29,7 +29,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] Módulo `e2e-tests`: base de RestAssured, tokens, JDBC, helper de `docker compose`
 - [x] F01
 - [x] F02
-- [ ] F16
+- [x] F16
 - [ ] F12
 - [ ] F17
 
