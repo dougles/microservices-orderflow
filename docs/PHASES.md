@@ -47,7 +47,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [ ] F07
 - [ ] F08
 - [ ] F11
-- [ ] F19
+- [x] F19
 
 ## Fase 4 — AWS
 - [ ] invoice-fn + InvoiceJob vía outbox SQS desde order-service
