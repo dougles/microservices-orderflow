@@ -37,7 +37,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] inventory-service (SPEC §9)
 - [x] credit-service (SPEC §9)
 - [x] shipping-service (SPEC §9)
-- [ ] order-service: orquestador con todas las transiciones de SPEC §8 y scanner de timeouts
+- [x] order-service: orquestador con todas las transiciones de SPEC §8 y scanner de timeouts
 - [ ] F06
 - [ ] F13
 - [ ] F10

@@ -20,6 +20,8 @@ spring:
       observation-enabled: true
     listener:
       observation-enabled: true
+    consumer:
+      auto-offset-reset: earliest
     producer:
       acks: all
       properties:
