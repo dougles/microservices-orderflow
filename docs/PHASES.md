@@ -41,7 +41,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] F06
 - [x] F13
 - [x] F10
-- [ ] F03
+- [x] F03
 - [ ] F04
 - [ ] F05
 - [ ] F07
