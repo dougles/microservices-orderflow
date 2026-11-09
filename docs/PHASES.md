@@ -34,7 +34,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] F17
 
 ## Fase 3 — Saga completa
-- [ ] inventory-service (SPEC §9)
+- [x] inventory-service (SPEC §9)
 - [ ] credit-service (SPEC §9)
 - [ ] shipping-service (SPEC §9)
 - [ ] order-service: orquestador con todas las transiciones de SPEC §8 y scanner de timeouts
