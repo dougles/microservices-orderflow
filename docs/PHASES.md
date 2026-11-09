@@ -40,7 +40,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] order-service: orquestador con todas las transiciones de SPEC §8 y scanner de timeouts
 - [x] F06
 - [x] F13
-- [ ] F10
+- [x] F10
 - [ ] F03
 - [ ] F04
 - [ ] F05

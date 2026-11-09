@@ -8,6 +8,11 @@ spring:
     password: ${SHIPPING_DB_PASSWORD}
     hikari:
       connection-timeout: 2000
+      # Por defecto 5 s: haria que cada intento supere los 2 s de SPEC 12.
+      validation-timeout: 1000
+      data-source-properties:
+        # Segundos. Sin esto, una base congelada cuelga la consulta sin limite y no hay reintentos.
+        socketTimeout: 3
   jpa:
     open-in-view: false
     hibernate:
