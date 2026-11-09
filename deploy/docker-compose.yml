@@ -375,5 +375,30 @@ services:
       retries: 30
       start_period: 30s
 
+  shipping-service:
+    <<: *java-app
+    build: ../shipping-service
+    profiles: [services]
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ORDERFLOW_PROFILE}
+      SHIPPING_DB_PASSWORD: ${SHIPPING_DB_PASSWORD}
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8085/actuator/health > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+
 volumes:
   postgres-data:
