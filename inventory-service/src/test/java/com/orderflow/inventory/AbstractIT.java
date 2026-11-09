@@ -1,12 +1,17 @@
 package com.orderflow.inventory;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+
 import com.orderflow.contracts.Topics;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -51,8 +56,15 @@ public abstract class AbstractIT {
   @Autowired protected KafkaTemplate<String, String> kafkaTemplate;
   @Autowired protected MockMvc mvc;
 
-  /** Un registro leído de Kafka: tipo, payload y partición. */
-  public record Received(String type, String key, String value) {}
+  /** Un registro leído de Kafka. {@code originalTimestamp} solo existe en los del DLT. */
+  public record Received(
+      String type, String key, String value, long timestamp, Long originalTimestamp) {
+
+    /** Tiempo entre la publicación original y la llegada al DLT. */
+    public long millisInOriginalTopic() {
+      return timestamp - originalTimestamp;
+    }
+  }
 
   @BeforeAll
   static void createTopics() throws Exception {
@@ -130,11 +142,14 @@ public abstract class AbstractIT {
         for (var record : consumer.poll(Duration.ofMillis(200))) {
           if (key.toString().equals(record.key())) {
             var type = record.headers().lastHeader("message_type");
+            var original = record.headers().lastHeader("kafka_dlt-original-timestamp");
             result.add(
                 new Received(
                     type == null ? null : new String(type.value(), StandardCharsets.UTF_8),
                     record.key(),
-                    record.value()));
+                    record.value(),
+                    record.timestamp(),
+                    original == null ? null : ByteBuffer.wrap(original.value()).getLong()));
           }
         }
       }
@@ -146,11 +161,41 @@ public abstract class AbstractIT {
     return readAll(Topics.INVENTORY_REPLIES, orderId);
   }
 
+  /** Espera a que el listener commitee todo {@code inventory.commands} y el outbox se vacíe. */
+  protected void awaitCommandsConsumedAndPublished(Duration limit) {
+    await()
+        .atMost(limit)
+        .untilAsserted(
+            () -> {
+              try (var consumer = newConsumer("inventory-service")) {
+                var partitions =
+                    consumer.partitionsFor(Topics.INVENTORY_COMMANDS).stream()
+                        .map(p -> new TopicPartition(p.topic(), p.partition()))
+                        .collect(Collectors.toSet());
+                var end = consumer.endOffsets(partitions);
+                var committed = consumer.committed(partitions);
+                for (TopicPartition partition : partitions) {
+                  var offset = committed.get(partition);
+                  assertThat(offset == null ? 0 : offset.offset()).isEqualTo(end.get(partition));
+                }
+              }
+              assertThat(
+                      jdbc.queryForObject(
+                          "SELECT count(*) FROM outbox_message WHERE published_at IS NULL",
+                          Integer.class))
+                  .isZero();
+            });
+  }
+
   private static KafkaConsumer<String, String> newConsumer() {
+    return newConsumer("it-" + UUID.randomUUID());
+  }
+
+  private static KafkaConsumer<String, String> newConsumer(String groupId) {
     return new KafkaConsumer<>(
         Map.<String, Object>of(
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers(),
-            ConsumerConfig.GROUP_ID_CONFIG, "it-" + UUID.randomUUID(),
+            ConsumerConfig.GROUP_ID_CONFIG, groupId,
             ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false,
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class));
