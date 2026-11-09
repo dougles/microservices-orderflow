@@ -46,7 +46,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] F05
 - [x] F07
 - [x] F08
-- [ ] F11
+- [x] F11
 - [x] F19
 
 ## Fase 4 — AWS
