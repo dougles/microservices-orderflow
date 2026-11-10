@@ -53,7 +53,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] invoice-fn + InvoiceJob vía outbox SQS desde order-service
 - [x] catalog-import-fn + consumidor SQS en catalog-service
 - [x] Lambdas desplegadas por el init de LocalStack
-- [ ] Monitores de DLQ (`orderflow.sqs.dlq.messages`) y todas las reglas de alerta de SPEC §13
+- [x] Monitores de DLQ (`orderflow.sqs.dlq.messages`) y todas las reglas de alerta de SPEC §13
 - [ ] F00
 - [ ] F14
 - [ ] F15

@@ -1,0 +1,19 @@
+# Reglas de alerta de SPEC §13. "Alerta" = estado FIRING en Prometheus (sin Alertmanager).
+groups:
+  - name: orderflow
+    rules:
+      - alert: InvoiceDlqNotEmpty
+        expr: orderflow_sqs_dlq_messages{queue="invoice-jobs-dlq"} > 0
+        for: 0m
+      - alert: CatalogImportDlqNotEmpty
+        expr: orderflow_sqs_dlq_messages{queue="catalog-import-dlq"} > 0
+        for: 0m
+      - alert: SagaCompensationFailed
+        expr: increase(orderflow_saga_compensation_failed_total[5m]) > 0
+        for: 0m
+      - alert: OutboxBacklog
+        expr: orderflow_outbox_pending > 1000
+        for: 1m
+      - alert: CatalogCircuitOpen
+        expr: resilience4j_circuitbreaker_state{name="catalog",state="open"} == 1
+        for: 0m

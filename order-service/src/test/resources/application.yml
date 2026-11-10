@@ -56,3 +56,5 @@ orderflow:
     timeout-check-interval: PT1S
   idempotency:
     retention: PT24H
+  dlq-monitor:
+    interval: PT30S
