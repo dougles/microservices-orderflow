@@ -119,6 +119,9 @@ services:
     volumes:
       - ./localstack/init/ready.d:/etc/localstack/init/ready.d:ro
       - /var/run/docker.sock:/var/run/docker.sock
+      # Jars de las Lambdas, construidos por Maven antes del `up` (skill aws-lambda).
+      - ../invoice-fn/target:/opt/lambdas/invoice-fn:ro
+      - ../catalog-import-fn/target:/opt/lambdas/catalog-import-fn:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -fs http://localhost:4566/_localstack/init/ready | grep -q '\"completed\": true'"]
       interval: 5s
