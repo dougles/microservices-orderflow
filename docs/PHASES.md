@@ -56,7 +56,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] Monitores de DLQ (`orderflow.sqs.dlq.messages`) y todas las reglas de alerta de SPEC §13
 - [x] F00
 - [x] F14
-- [ ] F15
+- [x] F15
 
 ## Fase 5 — Observabilidad y cierre
 - [ ] Atributo `order.id` en el span de creación y continuidad de traza a través del outbox
