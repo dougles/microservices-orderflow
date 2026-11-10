@@ -51,7 +51,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 
 ## Fase 4 — AWS
 - [x] invoice-fn + InvoiceJob vía outbox SQS desde order-service
-- [ ] catalog-import-fn + consumidor SQS en catalog-service
+- [x] catalog-import-fn + consumidor SQS en catalog-service
 - [ ] Lambdas desplegadas por el init de LocalStack
 - [ ] Monitores de DLQ (`orderflow.sqs.dlq.messages`) y todas las reglas de alerta de SPEC §13
 - [ ] F00
