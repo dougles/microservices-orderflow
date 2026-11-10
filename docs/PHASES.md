@@ -55,7 +55,7 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] Lambdas desplegadas por el init de LocalStack
 - [x] Monitores de DLQ (`orderflow.sqs.dlq.messages`) y todas las reglas de alerta de SPEC §13
 - [x] F00
-- [ ] F14
+- [x] F14
 - [ ] F15
 
 ## Fase 5 — Observabilidad y cierre
