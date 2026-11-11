@@ -62,4 +62,4 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] Atributo `order.id` en el span de creación y continuidad de traza a través del outbox
 - [x] F18
 - [x] Dashboard "OrderFlow" en Grafana (SPEC §13)
-- [ ] Suite completa (`./mvnw verify` + E2E) verde dos veces seguidas
+- [x] Suite completa (`./mvnw verify` + E2E) verde dos veces seguidas
