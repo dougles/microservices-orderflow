@@ -60,6 +60,6 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 
 ## Fase 5 — Observabilidad y cierre
 - [x] Atributo `order.id` en el span de creación y continuidad de traza a través del outbox
-- [ ] F18
+- [x] F18
 - [ ] Dashboard "OrderFlow" en Grafana (SPEC §13)
 - [ ] Suite completa (`./mvnw verify` + E2E) verde dos veces seguidas
