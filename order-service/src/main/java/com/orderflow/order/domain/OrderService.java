@@ -4,6 +4,8 @@ import com.orderflow.contracts.ReserveStock;
 import com.orderflow.contracts.Topics;
 import com.orderflow.messaging.outbox.OutboxWriter;
 import com.orderflow.order.catalog.CatalogClient;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Duration;
@@ -15,6 +17,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,7 @@ public class OrderService {
   private final OutboxWriter outbox;
   private final TransactionTemplate tx;
   private final Clock clock;
+  private final Tracer tracer;
   private final Duration stepTimeout;
 
   OrderService(
@@ -45,6 +49,7 @@ public class OrderService {
       OutboxWriter outbox,
       TransactionTemplate tx,
       Clock clock,
+      ObjectProvider<Tracer> tracer,
       @Value("${orderflow.saga.step-timeout}") Duration stepTimeout) {
     this.catalog = catalog;
     this.idempotency = idempotency;
@@ -53,6 +58,7 @@ public class OrderService {
     this.outbox = outbox;
     this.tx = tx;
     this.clock = clock;
+    this.tracer = tracer.getIfAvailable(() -> Tracer.NOOP);
     this.stepTimeout = stepTimeout;
   }
 
@@ -96,6 +102,11 @@ public class OrderService {
     }
 
     UUID orderId = accepted.orderId();
+    // SPEC §13: el span de creación lleva order.id (es el que se busca en Jaeger, F18).
+    Span span = tracer.currentSpan();
+    if (span != null) {
+      span.tag("order.id", orderId.toString());
+    }
     orders.save(new CustomerOrder(orderId, companyId, order.deliveryDate(), currency, lines, now));
     sagas.save(Saga.awaitingStock(orderId, now, stepTimeout));
     var items = order.items().stream().map(i -> new ReserveStock.Item(i.sku(), i.quantity())).toList();
