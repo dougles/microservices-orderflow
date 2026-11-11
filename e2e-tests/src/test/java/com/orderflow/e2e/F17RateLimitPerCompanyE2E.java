@@ -1,6 +1,7 @@
 package com.orderflow.e2e;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.orderflow.e2e.support.Api;
 import com.orderflow.e2e.support.E2EBase;
@@ -17,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -27,6 +29,18 @@ class F17RateLimitPerCompanyE2E extends E2EBase {
 
   private static final int ACME_REQUESTS = 100;
   private static final int GLOBEX_REQUESTS = 5;
+  /** Burst 40 a 20/s (SPEC §12): en 2 s el bucket de ACME vuelve a estar lleno. */
+  private static final Duration REFILL = Duration.ofSeconds(2);
+
+  /** Restaura el bucket que la ráfaga agotó: el test siguiente de la suite no debe ver 429. */
+  @AfterEach
+  void waitForAcmeBucket() {
+    String acme = Tokens.buyer("acme");
+    await()
+        .pollDelay(REFILL)
+        .atMost(REFILL.plusSeconds(10))
+        .until(() -> Api.listOrders(acme).statusCode() == 200);
+  }
 
   @Test
   void elLimiteDeUnaEmpresaNoAfectaAOtra() throws Exception {
