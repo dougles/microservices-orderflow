@@ -1,6 +1,6 @@
 # OrderFlow — Fases
 
-> Fase actual: 1
+> Fase actual: 2
 
 Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q verify` está verde. Claude marca checkboxes y actualiza la línea "Fase actual"; no agrega ni quita ítems (eso requiere ADR).
 
@@ -19,10 +19,10 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] Criterio de salida: todo healthy; `GET /api/orders` sin token → 401; token de `buyer-acme` obtenido por password grant con `orderflow-cli`; UIs de Eureka, Kibana, Grafana, Prometheus y Jaeger accesibles
 
 ## Fase 1 — messaging-lib y catálogo
-- [ ] messaging-lib: outbox (destinos KAFKA y SQS), publisher, métrica `orderflow.outbox.pending`, limpieza (skill `outbox`)
-- [ ] F09
-- [ ] messaging-lib: inbox, error handler + DLT, endpoint de replay (skill `kafka-consumer`)
-- [ ] catalog-service: productos, descuentos, `GET /api/catalog/products`, `GET /internal/prices`, seeds; 2 réplicas en compose
+- [x] messaging-lib: outbox (destinos KAFKA y SQS), publisher, métrica `orderflow.outbox.pending`, limpieza (skill `outbox`)
+- [x] F09
+- [x] messaging-lib: inbox, error handler + DLT, endpoint de replay (skill `kafka-consumer`)
+- [x] catalog-service: productos, descuentos, `GET /api/catalog/products`, `GET /internal/prices`, seeds; 2 réplicas en compose
 
 ## Fase 2 — API de pedidos
 - [ ] order-service: `POST /api/orders` (validación, precios vía catalog con LB + circuit breaker + client credentials, idempotencia, saga en AWAITING_STOCK, outbox ReserveStock), `GET` por id y listado, multi-tenant

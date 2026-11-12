@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: messaging-lib-it
+  flyway:
+    locations: classpath:db/messaging
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+      credentials:
+        access-key: test
+        secret-key: test
+
+orderflow:
+  outbox:
+    poll-interval: PT0.2S
+    batch-size: 100
+    retention: P7D
+  inbox:
+    retention: P7D

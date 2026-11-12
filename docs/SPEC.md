@@ -28,10 +28,10 @@ Distribuidora mayorista que vende a empresas cliente (B2B). Un comprador de una 
 | gateway | spring-cloud-starter-gateway-server-webflux, spring-boot-starter-oauth2-resource-server, spring-boot-starter-data-redis-reactive, spring-cloud-starter-loadbalancer, spring-cloud-starter-netflix-eureka-client, spring-cloud-starter-config, actuator, micrometer-registry-prometheus, micrometer-tracing-bridge-otel, opentelemetry-exporter-otlp, spring-boot-micrometer-tracing-opentelemetry, spring-boot-opentelemetry, logstash-logback-encoder |
 | config-server | spring-cloud-config-server, actuator |
 | discovery-server | spring-cloud-starter-netflix-eureka-server, actuator |
-| messaging-lib | spring-kafka, spring-jdbc, micrometer-core, micrometer-tracing, jackson-databind de tools.jackson.core (Jackson 3); spring-cloud-aws-starter-sqs como dependencia **`<optional>`** (la autoconfiguración SQS solo se activa si el servicio la trae) |
+| messaging-lib | spring-kafka, spring-jdbc, micrometer-core, micrometer-tracing, jackson-databind de tools.jackson.core (Jackson 3); spring-cloud-aws-starter-sqs y spring-web como dependencias **`<optional>`** (la autoconfiguración SQS solo se activa si el servicio la trae; spring-web es para el endpoint de replay, §5.5) |
 | contracts | solo JDK (records y constantes) |
 | Lambdas | aws-lambda-java-core, aws-lambda-java-events, AWS SDK v2 (s3, sqs), jackson-databind de com.fasterxml.jackson.core (Jackson 2), maven-shade-plugin; pdfbox solo en invoice-fn. Sin Spring |
-| Tests | spring-boot-starter-test, spring-boot-testcontainers, spring-boot-webmvc-test, spring-security-test, testcontainers-junit-jupiter, testcontainers-postgresql, testcontainers-kafka, testcontainers-localstack, awaitility, wiremock-standalone; en e2e-tests además rest-assured, postgresql, AWS SDK v2 |
+| Tests | spring-boot-starter-test, spring-boot-testcontainers, spring-boot-webmvc-test, spring-security-test, testcontainers-junit-jupiter, testcontainers-postgresql, testcontainers-kafka, testcontainers-localstack, awaitility, wiremock-standalone; en e2e-tests además rest-assured, postgresql, AWS SDK v2; en messaging-lib además postgresql, spring-boot-starter-jdbc, spring-boot-kafka, spring-boot-flyway, flyway-core, flyway-database-postgresql |
 
 ---
 

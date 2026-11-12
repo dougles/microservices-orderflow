@@ -19,9 +19,11 @@
 
   <modules>
     <module>contracts</module>
+    <module>messaging-lib</module>
     <module>config-server</module>
     <module>discovery-server</module>
     <module>gateway</module>
+    <module>catalog-service</module>
   </modules>
 
   <properties>
@@ -55,6 +57,11 @@
       <dependency>
         <groupId>com.orderflow</groupId>
         <artifactId>contracts</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.orderflow</groupId>
+        <artifactId>messaging-lib</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
