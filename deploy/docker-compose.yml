@@ -297,5 +297,33 @@ services:
       retries: 30
       start_period: 30s
 
+  order-service:
+    <<: *java-app
+    build: ../order-service
+    profiles: [services]
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ORDERFLOW_PROFILE}
+      ORDERS_DB_PASSWORD: ${ORDERS_DB_PASSWORD}
+      ORDER_SERVICE_CLIENT_SECRET: ${ORDER_SERVICE_CLIENT_SECRET}
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8082/actuator/health > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+
 volumes:
   postgres-data:

@@ -1,6 +1,6 @@
 # OrderFlow — Fases
 
-> Fase actual: 2
+> Fase actual: 3
 
 Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q verify` está verde. Claude marca checkboxes y actualiza la línea "Fase actual"; no agrega ni quita ítems (eso requiere ADR).
 
@@ -25,13 +25,13 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] catalog-service: productos, descuentos, `GET /api/catalog/products`, `GET /internal/prices`, seeds; 2 réplicas en compose
 
 ## Fase 2 — API de pedidos
-- [ ] order-service: `POST /api/orders` (validación, precios vía catalog con LB + circuit breaker + client credentials, idempotencia, saga en AWAITING_STOCK, outbox ReserveStock), `GET` por id y listado, multi-tenant
-- [ ] Módulo `e2e-tests`: base de RestAssured, tokens, JDBC, helper de `docker compose`
-- [ ] F01
-- [ ] F02
-- [ ] F16
-- [ ] F12
-- [ ] F17
+- [x] order-service: `POST /api/orders` (validación, precios vía catalog con LB + circuit breaker + client credentials, idempotencia, saga en AWAITING_STOCK, outbox ReserveStock), `GET` por id y listado, multi-tenant
+- [x] Módulo `e2e-tests`: base de RestAssured, tokens, JDBC, helper de `docker compose`
+- [x] F01
+- [x] F02
+- [x] F16
+- [x] F12
+- [x] F17
 
 ## Fase 3 — Saga completa
 - [ ] inventory-service (SPEC §9)
