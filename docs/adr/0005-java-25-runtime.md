@@ -1,6 +1,6 @@
 # 0005 — Actualizar el runtime de aplicación a Java 25
 
-- **Estado:** Propuesto
+- **Estado:** Aceptado
 - **Fecha:** 2026-11-07
 - **Fase / ítem donde surgió:** Fase 2; solicitud de modernización de runtime fuera de los ítems planificados
 
