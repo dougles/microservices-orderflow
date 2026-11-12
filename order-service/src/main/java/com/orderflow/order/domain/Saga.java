@@ -80,6 +80,68 @@ public class Saga {
     return stepDeadline;
   }
 
+  public boolean isStockReserved() {
+    return stockReserved;
+  }
+
+  public boolean isCreditReserved() {
+    return creditReserved;
+  }
+
+  public boolean isStockReleasePending() {
+    return stockReleasePending;
+  }
+
+  public boolean isCreditReleasePending() {
+    return creditReleasePending;
+  }
+
+  public boolean isShipmentCancelPending() {
+    return shipmentCancelPending;
+  }
+
+  public boolean hasPendingReleases() {
+    return stockReleasePending || creditReleasePending || shipmentCancelPending;
+  }
+
+  public int getCompensationAttempts() {
+    return compensationAttempts;
+  }
+
+  void moveTo(SagaState next, Instant deadline, Instant now) {
+    this.state = next;
+    this.stepDeadline = deadline;
+    this.updatedAt = now;
+  }
+
+  void markStockReserved() {
+    this.stockReserved = true;
+  }
+
+  void markCreditReserved() {
+    this.creditReserved = true;
+  }
+
+  void setStockReleasePending(boolean pending) {
+    this.stockReleasePending = pending;
+  }
+
+  void setCreditReleasePending(boolean pending) {
+    this.creditReleasePending = pending;
+  }
+
+  void setShipmentCancelPending(boolean pending) {
+    this.shipmentCancelPending = pending;
+  }
+
+  void setFailureReason(FailureReason reason) {
+    this.failureReason = reason;
+  }
+
+  void incrementCompensationAttempts() {
+    this.compensationAttempts++;
+  }
+
   public Instant getUpdatedAt() {
     return updatedAt;
   }

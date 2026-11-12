@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    hikari:
+      connection-timeout: 2000
+      validation-timeout: 1000
+      data-source-properties:
+        # Segundos. Sin esto, una base congelada cuelga la consulta sin limite y no hay reintentos.
+        socketTimeout: 3
+  application:
+    name: inventory-service
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    locations: classpath:db/migration,classpath:db/messaging
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8180/realms/orderflow/protocol/openid-connect/certs
+
+orderflow:
+  outbox:
+    poll-interval: PT0.2S
+    batch-size: 100
+    retention: P7D
+  inbox:
+    retention: P7D

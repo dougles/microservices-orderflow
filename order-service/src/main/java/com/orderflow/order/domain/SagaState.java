@@ -9,5 +9,13 @@ public enum SagaState {
   CONFIRMED,
   REJECTED,
   CANCELLED,
-  COMPENSATION_FAILED
+  COMPENSATION_FAILED;
+
+  public boolean isAwaiting() {
+    return this == AWAITING_STOCK || this == AWAITING_CREDIT || this == AWAITING_SHIPMENT;
+  }
+
+  public boolean isFinal() {
+    return !isAwaiting() && this != COMPENSATING;
+  }
 }

@@ -34,20 +34,20 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] F17
 
 ## Fase 3 — Saga completa
-- [ ] inventory-service (SPEC §9)
-- [ ] credit-service (SPEC §9)
-- [ ] shipping-service (SPEC §9)
-- [ ] order-service: orquestador con todas las transiciones de SPEC §8 y scanner de timeouts
-- [ ] F06
-- [ ] F13
-- [ ] F10
-- [ ] F03
-- [ ] F04
-- [ ] F05
-- [ ] F07
-- [ ] F08
-- [ ] F11
-- [ ] F19
+- [x] inventory-service (SPEC §9)
+- [x] credit-service (SPEC §9)
+- [x] shipping-service (SPEC §9)
+- [x] order-service: orquestador con todas las transiciones de SPEC §8 y scanner de timeouts
+- [x] F06
+- [x] F13
+- [x] F10
+- [x] F03
+- [x] F04
+- [x] F05
+- [x] F07
+- [x] F08
+- [x] F11
+- [x] F19
 
 ## Fase 4 — AWS
 - [ ] invoice-fn + InvoiceJob vía outbox SQS desde order-service

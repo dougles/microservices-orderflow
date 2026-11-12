@@ -25,6 +25,9 @@
     <module>gateway</module>
     <module>catalog-service</module>
     <module>order-service</module>
+    <module>inventory-service</module>
+    <module>credit-service</module>
+    <module>shipping-service</module>
     <module>e2e-tests</module>
   </modules>
 
