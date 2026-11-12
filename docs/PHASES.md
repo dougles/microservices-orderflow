@@ -1,6 +1,6 @@
 # OrderFlow — Fases
 
-> Fase actual: 2
+> Fase actual: 5
 
 Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q verify` está verde. Claude marca checkboxes y actualiza la línea "Fase actual"; no agrega ni quita ítems (eso requiere ADR).
 
@@ -25,41 +25,41 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] catalog-service: productos, descuentos, `GET /api/catalog/products`, `GET /internal/prices`, seeds; 2 réplicas en compose
 
 ## Fase 2 — API de pedidos
-- [ ] order-service: `POST /api/orders` (validación, precios vía catalog con LB + circuit breaker + client credentials, idempotencia, saga en AWAITING_STOCK, outbox ReserveStock), `GET` por id y listado, multi-tenant
-- [ ] Módulo `e2e-tests`: base de RestAssured, tokens, JDBC, helper de `docker compose`
-- [ ] F01
-- [ ] F02
-- [ ] F16
-- [ ] F12
-- [ ] F17
+- [x] order-service: `POST /api/orders` (validación, precios vía catalog con LB + circuit breaker + client credentials, idempotencia, saga en AWAITING_STOCK, outbox ReserveStock), `GET` por id y listado, multi-tenant
+- [x] Módulo `e2e-tests`: base de RestAssured, tokens, JDBC, helper de `docker compose`
+- [x] F01
+- [x] F02
+- [x] F16
+- [x] F12
+- [x] F17
 
 ## Fase 3 — Saga completa
-- [ ] inventory-service (SPEC §9)
-- [ ] credit-service (SPEC §9)
-- [ ] shipping-service (SPEC §9)
-- [ ] order-service: orquestador con todas las transiciones de SPEC §8 y scanner de timeouts
-- [ ] F06
-- [ ] F13
-- [ ] F10
-- [ ] F03
-- [ ] F04
-- [ ] F05
-- [ ] F07
-- [ ] F08
-- [ ] F11
-- [ ] F19
+- [x] inventory-service (SPEC §9)
+- [x] credit-service (SPEC §9)
+- [x] shipping-service (SPEC §9)
+- [x] order-service: orquestador con todas las transiciones de SPEC §8 y scanner de timeouts
+- [x] F06
+- [x] F13
+- [x] F10
+- [x] F03
+- [x] F04
+- [x] F05
+- [x] F07
+- [x] F08
+- [x] F11
+- [x] F19
 
 ## Fase 4 — AWS
-- [ ] invoice-fn + InvoiceJob vía outbox SQS desde order-service
-- [ ] catalog-import-fn + consumidor SQS en catalog-service
-- [ ] Lambdas desplegadas por el init de LocalStack
-- [ ] Monitores de DLQ (`orderflow.sqs.dlq.messages`) y todas las reglas de alerta de SPEC §13
-- [ ] F00
-- [ ] F14
-- [ ] F15
+- [x] invoice-fn + InvoiceJob vía outbox SQS desde order-service
+- [x] catalog-import-fn + consumidor SQS en catalog-service
+- [x] Lambdas desplegadas por el init de LocalStack
+- [x] Monitores de DLQ (`orderflow.sqs.dlq.messages`) y todas las reglas de alerta de SPEC §13
+- [x] F00
+- [x] F14
+- [x] F15
 
 ## Fase 5 — Observabilidad y cierre
-- [ ] Atributo `order.id` en el span de creación y continuidad de traza a través del outbox
-- [ ] F18
-- [ ] Dashboard "OrderFlow" en Grafana (SPEC §13)
-- [ ] Suite completa (`./mvnw verify` + E2E) verde dos veces seguidas
+- [x] Atributo `order.id` en el span de creación y continuidad de traza a través del outbox
+- [x] F18
+- [x] Dashboard "OrderFlow" en Grafana (SPEC §13)
+- [x] Suite completa (`./mvnw verify` + E2E) verde dos veces seguidas

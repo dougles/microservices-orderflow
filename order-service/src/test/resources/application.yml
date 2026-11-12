@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: order-service
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    locations: classpath:db/migration,classpath:db/messaging
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8180/realms/orderflow/protocol/openid-connect/certs
+      client:
+        registration:
+          catalog:
+            provider: keycloak
+            client-id: order-service
+            client-secret: test-secret
+            authorization-grant-type: client_credentials
+        provider:
+          keycloak:
+            # AbstractIT lo apunta a WireMock
+            token-uri: http://localhost:0/token
+  cloud:
+    loadbalancer:
+      # Sin retry hacia catalog (SPEC §12): por defecto reintenta en otra instancia.
+      retry:
+        enabled: false
+    circuitbreaker:
+      resilience4j:
+        disable-time-limiter: true
+        disable-thread-pool: true
+    aws:
+      region:
+        static: us-east-1
+      credentials:
+        access-key: test
+        secret-key: test
+
+orderflow:
+  outbox:
+    poll-interval: PT0.2S
+    batch-size: 100
+    retention: P7D
+  inbox:
+    retention: P7D
+  saga:
+    step-timeout: PT5M
+    compensation-retry-interval: PT1M
+    max-compensation-attempts: 5
+    timeout-check-interval: PT1S
+  idempotency:
+    retention: PT24H
+  dlq-monitor:
+    interval: PT30S

@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: credit-service
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      uri: ${CONFIG_SERVER_URL:http://config-server:8888}
+      fail-fast: true

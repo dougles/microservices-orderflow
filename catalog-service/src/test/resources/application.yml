@@ -27,3 +27,5 @@ orderflow:
     retention: P7D
   inbox:
     retention: P7D
+  dlq-monitor:
+    interval: PT30S
