@@ -10,6 +10,11 @@ management:
     web:
       exposure:
         include: health,info,prometheus
+  metrics:
+    distribution:
+      percentiles-histogram:
+        # Buckets para la latencia p95 HTTP por servicio del dashboard (SPEC §13).
+        "[http.server.requests]": true
   tracing:
     sampling:
       probability: 1.0
