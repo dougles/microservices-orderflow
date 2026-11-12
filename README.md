@@ -3,7 +3,7 @@
 Pedidos mayoristas B2B con microservicios Spring Boot, Kafka y AWS (LocalStack), construido con Claude Code.
 
 ## Requisitos de la máquina
-- Java 21, Docker con Compose v2, `jq` (lo usan los hooks; sin él los hooks bloquean).
+- Java 25 (las Lambdas compilan para 21), Docker con Compose v2, `jq` (lo usan los hooks; sin él los hooks bloquean).
 - RAM: 16 GB mínimo, 32 GB recomendado (unos 20 contenedores).
 
 ## Mapa
