@@ -1,6 +1,6 @@
 # OrderFlow — Fases
 
-> Fase actual: 3
+> Fase actual: 4
 
 Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q verify` está verde. Claude marca checkboxes y actualiza la línea "Fase actual"; no agrega ni quita ítems (eso requiere ADR).
 
@@ -50,13 +50,13 @@ Reglas: una fase empieza solo cuando la anterior está toda marcada y `./mvnw -q
 - [x] F19
 
 ## Fase 4 — AWS
-- [ ] invoice-fn + InvoiceJob vía outbox SQS desde order-service
-- [ ] catalog-import-fn + consumidor SQS en catalog-service
-- [ ] Lambdas desplegadas por el init de LocalStack
-- [ ] Monitores de DLQ (`orderflow.sqs.dlq.messages`) y todas las reglas de alerta de SPEC §13
-- [ ] F00
-- [ ] F14
-- [ ] F15
+- [x] invoice-fn + InvoiceJob vía outbox SQS desde order-service
+- [x] catalog-import-fn + consumidor SQS en catalog-service
+- [x] Lambdas desplegadas por el init de LocalStack
+- [x] Monitores de DLQ (`orderflow.sqs.dlq.messages`) y todas las reglas de alerta de SPEC §13
+- [x] F00
+- [x] F14
+- [x] F15
 
 ## Fase 5 — Observabilidad y cierre
 - [ ] Atributo `order.id` en el span de creación y continuidad de traza a través del outbox

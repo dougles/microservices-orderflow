@@ -8,6 +8,8 @@ import static org.mockito.Mockito.when;
 
 import com.orderflow.contracts.CancelShipment;
 import com.orderflow.contracts.CreditRejected;
+import com.orderflow.contracts.InvoiceJob;
+import com.orderflow.contracts.Queues;
 import com.orderflow.contracts.ReleaseCredit;
 import com.orderflow.contracts.ReleaseStock;
 import com.orderflow.contracts.ReserveCredit;
@@ -61,6 +63,7 @@ class SagaOrchestratorTest {
   private final MutableClock clock = new MutableClock();
   private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
   private final List<Emitted> emitted = new ArrayList<>();
+  private final List<Emitted> sqsSent = new ArrayList<>();
   private SagaOrchestrator orchestrator;
   private Saga saga;
 
@@ -84,6 +87,12 @@ class SagaOrchestratorTest {
         .thenAnswer(
             call -> {
               emitted.add(new Emitted(call.getArgument(0), call.getArgument(2)));
+              return UUID.randomUUID();
+            });
+    when(outbox.enqueueSqs(anyString(), any()))
+        .thenAnswer(
+            call -> {
+              sqsSent.add(new Emitted(call.getArgument(0), call.getArgument(1)));
               return UUID.randomUUID();
             });
     orchestrator =
@@ -206,6 +215,18 @@ class SagaOrchestratorTest {
     assertThat(saga.getState()).isEqualTo(SagaState.CONFIRMED);
     assertThat(saga.getStepDeadline()).isNull();
     assertThat(finished(SagaState.CONFIRMED)).isEqualTo(1);
+    assertThat(emitted).isEmpty();
+    assertThat(sqsSent)
+        .containsExactly(
+            new Emitted(
+                Queues.INVOICE_JOBS,
+                new InvoiceJob(
+                    id,
+                    "ACME",
+                    List.of(new InvoiceJob.Line("SKU-1", 2, new BigDecimal("10.00"))),
+                    new BigDecimal("20.00"),
+                    "BOB",
+                    clock.now)));
   }
 
   @Test
@@ -385,6 +406,7 @@ class SagaOrchestratorTest {
     assertThat(saga.hasPendingReleases()).isFalse();
     assertThat(messages())
         .containsExactly(new ReleaseStock(id), new ReleaseCredit(id), new CancelShipment(id));
+    assertThat(sqsSent).isEmpty();
   }
 
   @Test

@@ -2,6 +2,8 @@ package com.orderflow.order.domain;
 
 import com.orderflow.contracts.CancelShipment;
 import com.orderflow.contracts.CreditRejected;
+import com.orderflow.contracts.InvoiceJob;
+import com.orderflow.contracts.Queues;
 import com.orderflow.contracts.ReleaseCredit;
 import com.orderflow.contracts.ReleaseStock;
 import com.orderflow.contracts.ReserveCredit;
@@ -169,6 +171,8 @@ public class SagaOrchestrator {
             lateOrUnexpected(saga, ReplyKind.RESERVED, Resource.SHIPMENT, "ShipmentScheduled");
             return;
           }
+          CustomerOrder order = orders.findById(orderId).orElseThrow();
+          outbox.enqueueSqs(Queues.INVOICE_JOBS, invoiceJob(order, clock.instant()));
           finish(saga, SagaState.CONFIRMED);
         });
   }
@@ -318,6 +322,20 @@ public class SagaOrchestrator {
       case SHIPMENT ->
           outbox.enqueueKafka(Topics.SHIPPING_COMMANDS, key, new CancelShipment(orderId));
     }
+  }
+
+  private static InvoiceJob invoiceJob(CustomerOrder order, Instant confirmedAt) {
+    var lines =
+        order.getLines().stream()
+            .map(l -> new InvoiceJob.Line(l.getSku(), l.getQuantity(), l.getUnitPrice()))
+            .toList();
+    return new InvoiceJob(
+        order.getId(),
+        order.getCompanyId(),
+        lines,
+        order.getTotal(),
+        order.getCurrency(),
+        confirmedAt);
   }
 
   private void await(Saga saga, SagaState next) {

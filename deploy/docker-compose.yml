@@ -119,6 +119,9 @@ services:
     volumes:
       - ./localstack/init/ready.d:/etc/localstack/init/ready.d:ro
       - /var/run/docker.sock:/var/run/docker.sock
+      # Jars de las Lambdas, construidos por Maven antes del `up` (skill aws-lambda).
+      - ../invoice-fn/target:/opt/lambdas/invoice-fn:ro
+      - ../catalog-import-fn/target:/opt/lambdas/catalog-import-fn:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -fs http://localhost:4566/_localstack/init/ready | grep -q '\"completed\": true'"]
       interval: 5s
@@ -185,6 +188,7 @@ services:
     ports: ["9090:9090"]
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
       interval: 10s
@@ -289,6 +293,9 @@ services:
       postgres:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      # El consumidor de catalog-import necesita la cola (con su redrive) creada por el init.
+      localstack:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fs http://localhost:8081/actuator/health > /dev/null"]
