@@ -64,7 +64,7 @@ docker compose -f deploy/docker-compose.yml down -v
 
 ## Convenciones
 
-- Java 21, records para DTOs y mensajes, inyección por constructor, sin Lombok.
+- Java 25 (Lambdas y `contracts`: 21), records para DTOs y mensajes, inyección por constructor, sin Lombok.
 - Paquete base `com.orderflow.<modulo>`.
 - Dinero: `BigDecimal`, escala 2, `RoundingMode.HALF_EVEN`.
 - Errores HTTP: `ProblemDetail` con propiedad `code` (SPEC §5.4).

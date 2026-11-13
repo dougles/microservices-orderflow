@@ -16,7 +16,7 @@ Distribuidora mayorista que vende a empresas cliente (B2B). Un comprador de una 
 
 ## 2. Stack y dependencias
 
-- Java 21. Maven multi-módulo con wrapper (`./mvnw`). Sin Lombok.
+- Java 25 para las apps; las Lambdas (§11) y `contracts` compilan para Java 21. Maven multi-módulo con wrapper (`./mvnw`). Sin Lombok.
 - **Versiones:** en Fase 0 se fija en el pom raíz la versión GA más reciente de Spring Boot que sea compatible **a la vez** con un release train de Spring Cloud y con Spring Cloud AWS. Luego no se cambian. Fijadas: Spring Boot 4.0.9, Spring Cloud 2025.1.4, Spring Cloud AWS 4.2.1. Las dependencias fuera de los BOM se fijan en el pom raíz: logstash-logback-encoder 9.0, rest-assured 6.3.0, aws-lambda-java-core 1.4.1, aws-lambda-java-events 3.16.1, pdfbox 3.0.8.
 - **Dependencias permitidas** (cualquier otra requiere ADR):
 
@@ -78,7 +78,7 @@ Paquete base: `com.orderflow.<modulo>` (sin guiones; p. ej. `com.orderflow.inven
 - Un solo archivo: `deploy/docker-compose.yml`. `deploy/.env` define `COMPOSE_PROFILES=infra,platform,services,obs` y `ORDERFLOW_PROFILE=local`.
 - Todo contenedor tiene healthcheck. Arranque ordenado con `depends_on: condition: service_healthy` (config-server antes que cualquier cliente de config).
 - Servicios Java: `mem_limit: 512m`, `-XX:MaxRAMPercentage=75`. Elasticsearch: heap 1g.
-- Imagen de cada app: Dockerfile mínimo `eclipse-temurin:21-jre` que copia el jar ya construido por Maven (no se compila dentro de Docker).
+- Imagen de cada app: Dockerfile mínimo `eclipse-temurin:25-jre` que copia el jar ya construido por Maven (no se compila dentro de Docker).
 - `SPRING_PROFILES_ACTIVE=${ORDERFLOW_PROFILE}` en todas las apps.
 - LocalStack necesita el socket de Docker montado (Lambda). Imagen localstack/localstack:4.14.0, fijada porque no requiere token. Los IT con LocalStack usan la misma imagen.
 - Eureka: `prefer-ip-address: true` (las réplicas de catalog comparten hostname).
