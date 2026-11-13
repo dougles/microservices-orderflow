@@ -47,7 +47,7 @@ spring:
 - En `application-local.yml` y `application-e2e.yml` se agrega `classpath:db/seed` a las locations.
 - Hikari `connection-timeout: 2000` (SPEC §12).
 - Eureka: `eureka.client.service-url.defaultZone: http://discovery-server:8761/eureka`, `eureka.instance.prefer-ip-address: true`.
-- Tracing: `management.tracing.sampling.probability: 1.0`, `management.otlp.tracing.endpoint: http://jaeger:4318/v1/traces`.
+- Tracing: `management.tracing.sampling.probability: 1.0`, `management.opentelemetry.tracing.export.otlp.endpoint: http://jaeger:4318/v1/traces` (en Boot 4 la clave `management.otlp.tracing.endpoint` no exporta trazas). Ambas ya están en `config-repo/application.yml`; no repetirlas en `config-repo/<modulo>.yml`.
 - Kafka (si aplica): `spring.kafka.bootstrap-servers: kafka:9092`, propiedades de productor de SPEC §7.1, `spring.kafka.template.observation-enabled: true`, `spring.kafka.listener.observation-enabled: true`.
 - Exposición: `management.endpoints.web.exposure.include: health,info,prometheus`.
 
