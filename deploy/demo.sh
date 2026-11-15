@@ -73,11 +73,22 @@ ok "Keycloak is up"
 ACME=$(token buyer-acme);     ok "Got a JWT for buyer-acme (company ACME)"
 GLOBEX=$(token buyer-globex); ok "Got a JWT for buyer-globex (company GLOBEX)"
 OPS=$(token ops);             ok "Got a JWT for ops (back-office role)"
+# Right after startup the gateway may not have the services in its Eureka cache yet (503).
+deadline=$((SECONDS + 90))
+for path in /api/catalog/products /api/orders; do
+  until [ "$(curl -s -o /dev/null -w '%{http_code}' "$GATEWAY$path" -H "Authorization: Bearer $OPS")" = 200 ]; do
+    [ "$SECONDS" -ge "$deadline" ] && fail "gateway still not routing $path after 90s"
+    sleep 2
+  done
+done
+ok "Gateway is routing to catalog-service and order-service"
 
 step "Catalog with per-company pricing"
 info "GET /api/catalog/products — ACME has a 10% discount, ops sees base prices"
-ACME_PRICES=$(curl -fsS "$GATEWAY/api/catalog/products?size=3" -H "Authorization: Bearer $ACME")
-OPS_PRICES=$(curl -fsS "$GATEWAY/api/catalog/products?size=3" -H "Authorization: Bearer $OPS")
+# Show the seed SKUs only (E2E runs may leave extra imported products behind).
+SEED='{content: [.content[] | select(.sku | test("^SKU-000[1-3]$"))]}'
+ACME_PRICES=$(curl -fsS "$GATEWAY/api/catalog/products?size=100" -H "Authorization: Bearer $ACME" | jq -c "$SEED")
+OPS_PRICES=$(curl -fsS "$GATEWAY/api/catalog/products?size=100" -H "Authorization: Bearer $OPS" | jq -c "$SEED")
 paste <(jqr '.content[] | "\(.sku)  \(.name)"' <<<"$OPS_PRICES") \
       <(jqr '.content[] | "base \(.unitPrice)"' <<<"$OPS_PRICES") \
       <(jqr '.content[] | "ACME \(.unitPrice)"' <<<"$ACME_PRICES") | sed 's/^/  /'
